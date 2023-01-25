@@ -1,56 +1,85 @@
 
+% TODO:
+%  1) File log
+%  2) Make class
+%  3) 
+
+
 clc
-pause(0.1)
 
 COM_port_str = 'COM4';
 
-try
-Serial_obj = serialport(COM_port_str, 9600, ...
-                        'Parity', 'odd', ...
-                        'DataBits', 7, ...
-                        'StopBits', 1);
-disp('connected')
-catch msg
-	error(['COM port connection error:' newline msg.message])
-end
-                    
+% Connect
+Serial_obj = Connect(COM_port_str);
 
-CMD = "*IDN?";
+% Get temp
+Temp = Get_temp(Serial_obj);
+show_temp(Temp);
 
-Send_cmd(CMD);
+% Get heater value
+htr = Get_heater_value(Serial_obj);
+disp(['Heater: ' num2str(htr, '%06.2f'), '%'])
 
-pause(0.5);
-[Data, timeout_flag] = get_bytes(Serial_obj);
+% Set and Get setpoint
+set_point_out = Set_setpoint(Serial_obj, 273.18);
+disp(['Set point: ' num2str(set_point_out)]);
 
-disp('Data:');
-disp(Data);
-disp(char(Data(1:end-2)));
+% Get setpoint
+set_point_out = Get_setpoint(Serial_obj);
+disp(['Set point: ' num2str(set_point_out)]);
+
+% Set and Get Heater range
+Range = 0;
+out_range = Set_heater_range(Serial_obj, Range);
+disp(['Heater range = ' num2str(out_range)])
+
+% Get PID values
+PID = Get_pid(Serial_obj);
+disp(PID)
+
+% Set and Get ramp status
+rate = 2.1; % K/min
+enable = false;
+status = Set_ramp(Serial_obj, enable, rate);
+disp(status)
+
+% Get ramp status
+status = Get_ramp_status(Serial_obj);
+disp(status)
+
+
+% CMD = "SETP?";
+% Send_cmd(Serial_obj, CMD);
+% [Data, ~] = get_bytes(Serial_obj);
+% % disp(Data)
+% set_point_out = str2num(Data);
 
 delete(Serial_obj);
+disp([newline '~~DISCONNECTED~~'])
 
 
-
-function [Data, timeout_flag] = get_bytes(Serial_obj)
-Wait_timeout = 1; %s
-timeout_flag = 0;
-stop = 0;
-Time_start = tic;
-while ~stop
-    Bytes_count = Serial_obj.NumBytesAvailable;
-    
-    if Bytes_count > 0
-        Data = read(Serial_obj, Bytes_count, "uint8");
-        stop = 1;
-    end
-    
-    Time_now = toc(Time_start);
-    if Time_now > Wait_timeout
-        stop = 1;
-        timeout_flag = 1;
-        Data = 0;
-    end
+function status = Set_ramp(Serial_obj, enable, rate)
+% FIXME: only for loop 1
+High_limit = 100;
+Low_limit = 0;
+if rate > High_limit
+    rate = High_limit;
+    warning(['Rate value limited by ' num2str(High_limit)]);
 end
+if rate < Low_limit
+    rate = Low_limit;
+    warning(['Rate value limited by ' num2str(Low_limit)]);
 end
+
+enable = logical(enable);
+
+CMD = ['RAMP 1, ' num2str(enable), ', ', num2str(rate)];
+Send_cmd(Serial_obj, CMD);
+
+status = Get_ramp_status(Serial_obj);
+end
+
+
 
 
 
