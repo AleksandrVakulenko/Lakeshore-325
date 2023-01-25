@@ -18,7 +18,7 @@ show_temp(Temp);
 
 % Get heater value
 htr = Get_heater_value(Serial_obj);
-disp(['Heater: ' num2str(htr, '%06.2f'), '%'])
+disp(['Heater: ' num2str(htr, '%06.2f'), '%']);
 
 % Set and Get setpoint
 set_point_out = Set_setpoint(Serial_obj, 273.18);
