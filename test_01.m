@@ -1,14 +1,14 @@
 
+clc
+pause(0.1)
 
-COM_port_str = 'COM1';
+COM_port_str = 'COM4';
 
 try
-Serial_obj = serialport('Port', COM_port_str, ...
-                        'BaudRate', 9600, ...
+Serial_obj = serialport(COM_port_str, 9600, ...
                         'Parity', 'odd', ...
                         'DataBits', 7, ...
-                        'StopBits', 1, ...
-                        'Terminator', "CR/LF");
+                        'StopBits', 1);
 disp('connected')
 catch msg
 	error(['COM port connection error:' newline msg.message])
@@ -17,22 +17,21 @@ end
 
 CMD = "*IDN?";
 
-write(obj.Serial_obj, CMD);
-pause(0.05);
+Send_cmd(CMD);
 
 pause(0.5);
 [Data, timeout_flag] = get_bytes(Serial_obj);
 
 disp('Data:');
 disp(Data);
-
+disp(char(Data(1:end-2)));
 
 delete(Serial_obj);
 
 
 
 function [Data, timeout_flag] = get_bytes(Serial_obj)
-Wait_timeout = 1;
+Wait_timeout = 1; %s
 timeout_flag = 0;
 stop = 0;
 Time_start = tic;
@@ -52,8 +51,6 @@ while ~stop
     end
 end
 end
-
-
 
 
 
