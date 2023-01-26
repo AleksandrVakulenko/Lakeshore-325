@@ -8,7 +8,7 @@ obj = Lakeshore325(COM_port_str);
 
 % Get temp
 Temp = obj.get_temp();
-show_temp(Temp);
+disp(['A: ' num2str(Temp.A, '%+07.2f'), ' K | B: ', num2str(Temp.B, '%+07.2f') ' K'])
 
 % Get heater value
 htr = obj.get_heater_value();

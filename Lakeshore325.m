@@ -20,7 +20,7 @@ classdef Lakeshore325 < handle
             obj.COM_port_str = char(port_name);
             close_all_objects();
             port_name_check(obj.COM_port_str);
-            obj.Serial_obj = Connect(obj.COM_port_str);
+            obj.Connect();
             disp(['Lakeshore325 connected at port: ' obj.COM_port_str newline]);
         end
         
@@ -35,7 +35,7 @@ classdef Lakeshore325 < handle
         %-------------------------------GETTER--------------------------------
         function htr = get_heater_value(obj) % '%'
             % FIXME: check units (%)
-            Send_cmd(obj.Serial_obj, "HTR?");
+            obj.Send_cmd("HTR?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_heater_value');
@@ -47,7 +47,7 @@ classdef Lakeshore325 < handle
         
         
         function PID = get_pid(obj)
-            Send_cmd(obj.Serial_obj, "PID?");
+            obj.Send_cmd("PID?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_pid');
@@ -62,7 +62,7 @@ classdef Lakeshore325 < handle
         
         
         function status = get_ramp_status(obj)
-            Send_cmd(obj.Serial_obj, "RAMP?");
+            obj.Send_cmd("RAMP?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_ramp_status');
@@ -76,7 +76,7 @@ classdef Lakeshore325 < handle
         
         
         function set_point_out = get_setpoint(obj)
-            Send_cmd(obj.Serial_obj, "SETP?");
+            obj.Send_cmd("SETP?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_setpoint');
@@ -88,7 +88,7 @@ classdef Lakeshore325 < handle
         
         
         function Temp = get_temp(obj) %K, K
-            Send_cmd(obj.Serial_obj, "KRDG? A");
+            obj.Send_cmd("KRDG? A");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_temp (A)');
@@ -96,7 +96,7 @@ classdef Lakeshore325 < handle
             else
                 Temp.A = str2num(Data); %K
             end
-            Send_cmd(obj.Serial_obj, "KRDG? B");
+            obj.Send_cmd("KRDG? B");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_temp (B)');
@@ -117,7 +117,7 @@ classdef Lakeshore325 < handle
             end
             % FIXME: setpoint only for LOOP 1 now
             CMD = ['RANGE 1, ' num2str(Range)];
-            Send_cmd(obj.Serial_obj, CMD);
+            obj.Send_cmd(CMD);
         end
         
         
@@ -134,7 +134,7 @@ classdef Lakeshore325 < handle
             end
             % FIXME: setpoint only for LOOP 1 now
             CMD = ['SETP 1,' num2str(Set_point_in, '%6.2f')];
-            Send_cmd(obj.Serial_obj, CMD);
+            obj.Send_cmd(CMD);
         end
         
         
@@ -152,7 +152,7 @@ classdef Lakeshore325 < handle
             end
             enable = logical(enable);
             CMD = ['RAMP 1, ' num2str(enable), ', ', num2str(rate)];
-            Send_cmd(obj.Serial_obj, CMD);
+            obj.Send_cmd(CMD);
         end
     end
     
@@ -163,30 +163,30 @@ classdef Lakeshore325 < handle
     end
     
     methods (Access = private)
-        function Send_cmd(Serial_obj, CMD)
+        function Send_cmd(obj, CMD)
             Term = [char(13) char(10)];
             CMD_out = [char(CMD) Term];
-            write(Serial_obj, CMD_out, "uint8");
+            write(obj.Serial_obj, CMD_out, "uint8");
             pause(0.07); % FIXME: magic constant
+        end
+        
+        function Connect(obj)
+            try
+                obj.Serial_obj = serialport(obj.COM_port_str, 9600, ...
+                    'Parity', 'odd', ...
+                    'DataBits', 7, ...
+                    'StopBits', 1);
+                obj.Send_cmd("*IDN?");
+                [IND_query, ~] = get_bytes(obj.Serial_obj);
+                disp(['CONNECTED:' newline IND_query]);
+            catch msg
+                error(['COM port connection error:' newline msg.message])
+            end
         end
         
     end
 end
 
-
-function Serial_obj = Connect(COM_port_str)
-try
-    Serial_obj = serialport(COM_port_str, 9600, ...
-        'Parity', 'odd', ...
-        'DataBits', 7, ...
-        'StopBits', 1);
-    Send_cmd(Serial_obj, "*IDN?");
-    [IND_query, ~] = get_bytes(Serial_obj);
-    disp(['CONNECTED:' newline IND_query]);
-catch msg
-    error(['COM port connection error:' newline msg.message])
-end
-end
 
 
 function [Data_stream, timeout_flag] = get_bytes(Serial_obj)
