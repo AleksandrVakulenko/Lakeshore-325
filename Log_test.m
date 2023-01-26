@@ -1,6 +1,4 @@
 
-
-
 clc
 
 filename = 'temp_log.txt';
@@ -31,10 +29,10 @@ Temp_controller = Lakeshore325(COM_port_str);
 Timer = tic();
 Time = 0;
 
+Temp_controller.set_ramp(false, 2);
+Temp_controller.set_setpoint(295);
+
 Temp_log = [];
-% Temp_log.time = [];
-% Temp_log.a = [];
-% Temp_log.b = [];
 i = 0;
 stop_flag = 0;
 while ~stop_flag
@@ -92,6 +90,7 @@ end
 
 
 % Device disconnect and close file
+Temp_controller.set_ramp(false, 2);
 delete(Temp_controller);
 fclose(fileID);
 
