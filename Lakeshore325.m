@@ -5,7 +5,10 @@
 %  2) Class testing
 %  3) Power regulator
 %  4) One function to Get status
-%  5)
+%  5) Log file write
+%  6) Figure for plot and GUI
+%  7)
+%  8)
 
 % dofixrpt('Lakeshore325.m','file') -> find notes in file
 % dofixrpt(dir) -> find notes in all files in directory 'dir'
@@ -40,7 +43,6 @@ classdef Lakeshore325 < handle
             else
                 htr = str2num(Data); % '%'
             end
-            
         end
         
         
