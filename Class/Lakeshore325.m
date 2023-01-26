@@ -18,7 +18,7 @@ classdef Lakeshore325 < handle
             close_all_objects();
             port_name_check(obj.COM_port_str);
             obj.Serial_obj = Connect(obj.COM_port_str);
-            disp(['Lakeshore325 connected at port: ' obj.COM_port_str]);
+            disp(['Lakeshore325 connected at port: ' obj.COM_port_str newline]);
         end
         
         
@@ -135,10 +135,24 @@ classdef Lakeshore325 < handle
             Send_cmd(obj.Serial_obj, CMD);
         end
         
+        
+        function set_ramp(obj, enable, rate)
+            % FIXME: only for loop 1
+            High_limit = 100;
+            Low_limit = 0;
+            if rate > High_limit
+                rate = High_limit;
+                warning(['Rate value limited by ' num2str(High_limit)]);
+            end
+            if rate < Low_limit
+                rate = Low_limit;
+                warning(['Rate value limited by ' num2str(Low_limit)]);
+            end
+            enable = logical(enable);
+            CMD = ['RAMP 1, ' num2str(enable), ', ', num2str(rate)];
+            Send_cmd(obj.Serial_obj, CMD);
+        end
     end
-    
-    
-    
     
     %-------------------------------PRIVATE--------------------------------
     properties (Access = private)
@@ -166,7 +180,7 @@ try
         'StopBits', 1);
     Send_cmd(Serial_obj, "*IDN?");
     [IND_query, ~] = get_bytes(Serial_obj);
-    disp(['CONNECTED:' newline IND_query newline]);
+    disp(['CONNECTED:' newline IND_query]);
 catch msg
     error(['COM port connection error:' newline msg.message])
 end
