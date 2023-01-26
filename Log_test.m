@@ -1,4 +1,6 @@
 
+
+
 clc
 
 filename = 'temp_log.txt';
@@ -15,6 +17,10 @@ line = ['time_s' Tab ...
 fprintf(fileID, [line '\n']);
 
 Fig = figure('position', [250 255 736 504]);
+global stop_flag;
+Stop_button = uicontrol('Style', 'pushbutton', 'string', 'Stop', ...
+    'Position', [10 10 75 25]);
+Stop_button.Callback = @stop;
 
 
 % Device connect
@@ -30,7 +36,8 @@ Temp_log = [];
 % Temp_log.a = [];
 % Temp_log.b = [];
 i = 0;
-while Time < 10
+stop_flag = 0;
+while ~stop_flag
 Time = toc(Timer);
 Temp = Temp_controller.get_temp();
 Set_point = Temp_controller.get_setpoint();
@@ -38,8 +45,8 @@ Heater_value = Temp_controller.get_heater_value();
 Ramp_status = Temp_controller.get_ramp_status();
 
 Time_str = num2str(Time, '%09.1f');
-T_A_str = num2str(Temp.A, '%06.2f');
-T_B_str = num2str(Temp.B, '%06.2f');
+T_A_str = num2str(Temp.a, '%06.2f');
+T_B_str = num2str(Temp.b, '%06.2f');
 Set_point_str = num2str(Set_point, '%06.2f');
 Heater_value_str = num2str(Heater_value, '%06.2f');
 Ramp_en_srt = num2str(Ramp_status.enable, '%01.0f');
@@ -57,15 +64,17 @@ disp([T_A_str ' ' Set_point_str ' ' ...
 
 i = i + 1;
 Temp_log.time(i) = Time;
-Temp_log.temp(i) = Temp;
+Temp_log.temp_a(i) = Temp.a;
+Temp_log.temp_b(i) = Temp.b;
 Temp_log.sp(i) = Set_point;
 Temp_log.heater(i) = Heater_value;
-Temp_log.Ramp_status = Ramp_status;
+Temp_log.ramp_enable(i) = Ramp_status.enable;
+Temp_log.ramp_rate(i) = Ramp_status.rate;
 
 subplot(2, 1, 1)
 hold on
 cla
-plot(Temp_log.time/60, Temp_log.temp.a);
+plot(Temp_log.time/60, Temp_log.temp_a);
 plot(Temp_log.time/60, Temp_log.sp);
 xlabel('time, min')
 ylabel('Temp, K')
@@ -73,7 +82,7 @@ drawnow
 
 subplot(2, 1, 2)
 cla
-plot(Temp_log.time/60, Temp_log.temp.b);
+plot(Temp_log.time/60, Temp_log.temp_b);
 xlabel('time, min')
 ylabel('Temp, K')
 drawnow
@@ -87,7 +96,10 @@ delete(Temp_controller);
 fclose(fileID);
 
 
-
+function stop(src, event)
+global stop_flag;
+stop_flag = 1;
+end
 
 
 

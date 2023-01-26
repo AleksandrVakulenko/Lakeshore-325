@@ -92,17 +92,17 @@ classdef Lakeshore325 < handle
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_temp (A)');
-                Temp.A = NaN; %K
+                Temp.a = NaN; %K
             else
-                Temp.A = str2num(Data); %K
+                Temp.a = str2num(Data); %K
             end
             obj.Send_cmd("KRDG? B");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
                 warning('timeout_flag in Get_temp (B)');
-                Temp.B = NaN; %K
+                Temp.b = NaN; %K
             else
-                Temp.B = str2num(Data); %K
+                Temp.b = str2num(Data); %K
             end
         end
         
