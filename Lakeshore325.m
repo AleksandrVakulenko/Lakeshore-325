@@ -10,12 +10,13 @@
 %  7)
 %  8)
 
-% dofixrpt('Lakeshore325.m','file') -> find notes in file
+% c -> find notes in file
 % dofixrpt(dir) -> find notes in all files in directory 'dir'
 
 classdef Lakeshore325 < handle
     %--------------------------------PUBLIC--------------------------------
     methods (Access = public)
+        % FIXME: make it silent
         function obj = Lakeshore325(port_name)
             obj.COM_port_str = char(port_name);
             close_all_objects();
@@ -38,7 +39,7 @@ classdef Lakeshore325 < handle
             obj.Send_cmd("HTR?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_heater_value');
+                warning('timeout_flag in Get_heater_value()');
                 htr = NaN; % '%'
             else
                 htr = str2num(Data); % '%'
@@ -50,7 +51,7 @@ classdef Lakeshore325 < handle
             obj.Send_cmd("PID?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_pid');
+                warning('timeout_flag in Get_pid()');
                 Data = [NaN, NaN, NaN];
             else
                 Data = sscanf(Data, '%f,%f,%f');
@@ -65,7 +66,7 @@ classdef Lakeshore325 < handle
             obj.Send_cmd("RAMP?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_ramp_status');
+                warning('timeout_flag in Get_ramp_status()');
                 Data = [NaN, NaN];
             else
                 Data = sscanf(Data, '%f,%f');
@@ -79,7 +80,7 @@ classdef Lakeshore325 < handle
             obj.Send_cmd("SETP?");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_setpoint');
+                warning('timeout_flag in Get_setpoint()');
                 set_point_out = NaN;
             else
                 set_point_out = str2num(Data);
@@ -91,15 +92,16 @@ classdef Lakeshore325 < handle
             obj.Send_cmd("KRDG? A");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_temp (A)');
+                warning('timeout_flag in Get_temp()::(A ch)');
                 Temp.a = NaN; %K
             else
                 Temp.a = str2num(Data); %K
             end
+            
             obj.Send_cmd("KRDG? B");
             [Data, timeout_flag] = get_bytes(obj.Serial_obj);
             if timeout_flag
-                warning('timeout_flag in Get_temp (B)');
+                warning('timeout_flag in Get_temp()::(B ch)');
                 Temp.b = NaN; %K
             else
                 Temp.b = str2num(Data); %K
@@ -111,7 +113,7 @@ classdef Lakeshore325 < handle
         %-------------------------------SETTER--------------------------------
         function set_heater_range(obj, Range)
             % 0 - OFF, 1 - 2.5W, 2 - 25W
-            if ~(Range ~= 0 || Range ~= 1 || Range ~= 2)
+            if (Range ~= 0 && Range ~= 1 && Range ~= 2)
                 Range = 0;
                 warning('Wrong heater range. Heater Disabled.');
             end
@@ -122,7 +124,7 @@ classdef Lakeshore325 < handle
         
         
         function set_setpoint(obj, Set_point_in)
-            Low_limit = 5; %K FIXME: magic constants
+            Low_limit = 3; %K FIXME: magic constants
             High_limit = 300; %K
             if Set_point_in < Low_limit
                 Set_point_in = Low_limit;
@@ -211,16 +213,16 @@ while ~stop
     end
     
     Time_now = toc(Time_start);
-    if Time_now > Wait_timeout && ~stop
+    if (Time_now > Wait_timeout) && ~stop
         stop = 1;
         timeout_flag = 1;
         Data_stream = 0;
     end
-    Data_stream = char(Data_stream);
+end
+    Data_stream = char(Data_stream); % FIMXE: why char()?
     if numel(Data_stream) > 2
         Data_stream = Data_stream(1:end-2);
     end
-end
 end
 
 

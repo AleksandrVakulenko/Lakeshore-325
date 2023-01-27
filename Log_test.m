@@ -1,16 +1,17 @@
 
 clc
 
-filename = 'temp_log.txt';
+filename = 'temp_log_001.txt';
 COM_port_str = 'COM4';
 
 % Log file open
-fileID = fopen('temp_log.txt', 'w');
+% FIXME: add Heater status
+fileID = fopen(filename, 'w');
 Tab = '\t';
 line = ['time_s' Tab ...
         'TempA_K' Tab 'TempB_K' Tab ...
         'Setpoint_K' Tab ...
-        'Heater_%' Tab ...
+        'Heater_1' Tab ...
         'Ramp', Tab 'Rate_K/m'];
 fprintf(fileID, [line '\n']);
 
@@ -24,14 +25,23 @@ Stop_button.Callback = @stop;
 % Device connect
 Temp_controller = Lakeshore325(COM_port_str);
 
+% ---temp---------------------------------------------------------------
+Test_n = 4;
+Test_string = 'Free heating';
+% ----------------------------------------------------------------------
+
+% Temp = Temp_controller.get_temp();
+% Temp_controller.set_setpoint(Temp.a);
+Temp_controller.set_ramp(false, 2);
+Temp_controller.set_heater_range(0);
+Temp_controller.set_setpoint(5);
+
+
+% ----------------------------------------------------------------------
 
 % Timer start
 Timer = tic();
 Time = 0;
-
-Temp_controller.set_ramp(false, 2);
-Temp_controller.set_setpoint(295);
-
 Temp_log = [];
 i = 0;
 stop_flag = 0;
@@ -56,7 +66,7 @@ line = [Time_str '\t' ...
         Ramp_en_srt '\t' Rate_str];
 fprintf(fileID, [line '\n']);
 
-disp([T_A_str ' ' Set_point_str ' ' ...
+disp([Set_point_str ' ' T_A_str ' ' T_B_str ' ' ...
       Heater_value_str ' ' ...
       Ramp_en_srt ' ' Rate_str]);
 
@@ -85,15 +95,21 @@ xlabel('time, min')
 ylabel('Temp, K')
 drawnow
 
-pause(0.2);
+% pause(1);
 end
 
 
 % Device disconnect and close file
+% Temp_controller.set_heater_range(0);
 Temp_controller.set_ramp(false, 2);
 delete(Temp_controller);
 fclose(fileID);
+fclose('all'); % FIXME: why?
 
+% ------ temp ------
+Mat_name = [num2str(Test_n, '%03u') '.mat'];
+save(Mat_name, 'Temp_log', 'Test_string');
+% ------------------
 
 function stop(src, event)
 global stop_flag;
