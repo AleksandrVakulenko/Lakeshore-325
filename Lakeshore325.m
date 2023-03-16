@@ -169,7 +169,7 @@ classdef Lakeshore325 < handle
             Term = [char(13) char(10)];
             CMD_out = [char(CMD) Term];
             write(obj.Serial_obj, CMD_out, "uint8");
-            pause(0.07); % FIXME: magic constant
+            pause(0.2); % FIXME: magic constant
         end
         
         function Connect(obj)
