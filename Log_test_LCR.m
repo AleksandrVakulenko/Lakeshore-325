@@ -92,7 +92,7 @@ Temp_log.sp(i) = Set_point;
 Temp_log.heater(i) = Heater_value;
 Temp_log.ramp_enable(i) = Ramp_status.enable;
 Temp_log.ramp_rate(i) = Ramp_status.rate;
-Temp_log.res = Res;
+Temp_log.res(i) = Res;
 
 subplot(2, 1, 1)
 hold on
