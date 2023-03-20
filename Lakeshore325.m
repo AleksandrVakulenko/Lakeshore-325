@@ -10,8 +10,7 @@
 %  7)
 %  8)
 
-% c -> find notes in file
-% dofixrpt(dir) -> find notes in all files in directory 'dir'
+% dofixrpt(dir)
 
 classdef Lakeshore325 < handle
     %--------------------------------PUBLIC--------------------------------
